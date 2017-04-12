@@ -9,17 +9,11 @@ Iulian V. Serban*, Alessandro Sordoni*, Yoshua Bengio1*, Aaron Courville* and Jo
 （2）demo步骤：
 
   	 (a)  cd hed-dlg-truncated-master
-   
-  	 #### 训练模型
-   
-   	 (b)  THEANO_FLAGS=mode=FAST_RUN,floatX=float32 python train.py --prototype prototype_test > Model_Output.txt
-   
-  	 ###  对测试问题进行应答对话 －－文件名 1491890939.58_testmodel 根据实际情况调整，在tests/models里面
-   
-   	 (c)  python create-text-file-for-tests.py ./tests/models/1491890939.58_testmodel ./tests/data/ttest.dialogues.pkl --utterances_to_predict 2
-  
-  
-  	 ps. 对于Ubuntu和Twitter的示例由于数据较大，本部分暂不做介绍。  
+     #### 训练模型
+     (b)  THEANO_FLAGS=mode=FAST_RUN,floatX=float32 python train.py --prototype prototype_test > Model_Output.txt
+     ###  对测试问题进行应答对话 －－文件名 1491890939.58_testmodel 根据实际情况调整，在tests/models里面
+     (c)  python create-text-file-for-tests.py ./tests/models/1491890939.58_testmodel ./tests/data/ttest.dialogues.pkl --utterances_to_predict 2
+     ps. 对于Ubuntu和Twitter的示例由于数据较大，本部分暂不做介绍。  
     
 第二部分：兼容python3      
 
