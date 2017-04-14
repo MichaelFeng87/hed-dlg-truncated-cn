@@ -24,7 +24,7 @@ Iulian V. Serban*, Alessandro Sordoni*, Yoshua Bengio1*, Aaron Courville* and Jo
        python3 convert-cn-text2dict.py raw_data/test_demo.txt pkl_data/test_demo
        python3 convert-cn-text2dict.py raw_data/valid_demo.txt pkl_data/valid_demo
     (2) cd hed-dlg-truncated-cn 训练模型
-       THEANO_FLAGS=mode=FAST_RUN,floatX=float32 python3 train.py --prototype prototype_test_cn > Model_Output_Cn.txt
+       THEANO_FLAGS=mode=FAST_RUN,floatX=float32 python train.py --prototype prototype_test_cn > Model_Output_Cn.txt
     (3) 应答对话测试
        python3 create-text-file-for-tests.py Prepare_Data_CN/models/1492077976.51_model ./Prepare_Data_CN/pkl_data/test_demo.dialogues.pkl --utterances_to_predict 3
       
