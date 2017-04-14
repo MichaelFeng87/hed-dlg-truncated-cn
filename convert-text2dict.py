@@ -35,7 +35,7 @@ parser.add_argument("--cutoff", type=int, default=-1, help="Vocabulary cutoff (o
 parser.add_argument("--dict", type=str, default="", help="External dictionary (pkl file)")
 parser.add_argument("output", type=str, help="Prefix of the pickle binarized dialogue corpus")
 args = parser.parse_args()
-
+print(args.input)
 if not os.path.isfile(args.input):
     raise Exception("Input file not found!")
 

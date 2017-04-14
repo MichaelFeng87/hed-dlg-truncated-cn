@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 """
 Dialog hierarchical encoder-decoder code.
 The code is inspired from nmt encdec code in groundhog
@@ -9,7 +10,8 @@ __authors__ = ("Iulian Vlad Serban")
 import theano
 import theano.tensor as T
 import numpy as np
-import cPickle
+#import cPickle
+import pickle as cPickle
 import logging
 logger = logging.getLogger(__name__)
 
@@ -1614,8 +1616,9 @@ class DialogEncoderDecoder(Model):
         self.rng = numpy.random.RandomState(state['seed']) 
 
         # Load dictionary
+        #raw_dict = cPickle.load(open(self.dictionary, 'r'))
         raw_dict = cPickle.load(open(self.dictionary, 'r'))
-
+        
         # Probabilities for each term in the corpus used for noise contrastive estimation (NCE)
         self.noise_probs = [x[2] for x in sorted(raw_dict, key=operator.itemgetter(1))]
         self.noise_probs = numpy.array(self.noise_probs, dtype='float64')

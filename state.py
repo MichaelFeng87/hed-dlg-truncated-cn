@@ -1,5 +1,7 @@
+# -*- coding: UTF-8 -*-
 from collections import OrderedDict
-import cPickle
+#import cPickle
+import pickle as cPickle
 import os
 
 def prototype_state():
@@ -26,8 +28,8 @@ def prototype_state():
     state['second_speaker_sym'] = 4 # second speaker symbol <second_speaker>
     state['third_speaker_sym'] = 5 # third speaker symbol <third_speaker>
     state['minor_speaker_sym'] = 6 # minor speaker symbol <minor_speaker>
-    state['voice_over_sym'] = 7 # voice over symbol <voice_over>
-    state['off_screen_sym'] = 8 # off screen symbol <off_screen>
+    state['voice_over_sym'] = 7 # voice over symbol <voice_over> 
+    state['off_screen_sym'] = 8 # off screen symbol <off_screen> 
     state['pause_sym'] = 9 # pause symbol <pause>
 
 
@@ -192,9 +194,11 @@ def prototype_state():
     # Validation frequency
     state['valid_freq'] = 5000
     # Number of batches to process
-    state['loop_iters'] = 3000000
+    #state['loop_iters'] = 3000000
+    state['loop_iters'] = 10000
     # Maximum number of minutes to run
-    state['time_stop'] = 24*60*31
+    #state['time_stop'] = 24*60*31
+    state['time_stop'] = 20
     # Error level to stop at
     state['minerr'] = -1
 
@@ -245,6 +249,53 @@ def prototype_test():
     state['rankdim'] = 10
 
     return state
+
+def prototype_test_cn():
+    state = prototype_state()
+    state['end_sym_utterance'] = '<sss>'
+    # Fill paths here!
+    state['train_dialogues'] = "./Prepare_Data_CN/pkl_data/train_demo.dialogues.pkl"
+    state['test_dialogues'] = "./Prepare_Data_CN/pkl_data/test_demo.dialogues.pkl"
+    state['valid_dialogues'] = "./Prepare_Data_CN/pkl_data/valid_demo.dialogues.pkl"
+    state['dictionary'] = "./Prepare_Data_CN/pkl_data/train_demo.dict.pkl"
+    state['save_dir'] = "./Prepare_Data_CN/models/"
+
+    state['max_grad_steps'] = 20
+
+    # Handle pretrained word embeddings. Using this requires rankdim=10
+    state['initialize_from_pretrained_word_embeddings'] = False
+    #state['pretrained_word_embeddings_file'] = './tests_cn/data/MT_WordEmb.pkl'
+    state['fix_pretrained_word_embeddings'] = False
+
+    state['valid_freq'] = 50
+
+    state['collaps_to_standard_rnn'] = False
+
+    state['prefix'] = "model_"
+    state['updater'] = 'adam'
+
+    state['maxout_out'] = False
+    state['deep_out'] = True
+    state['deep_dialogue_input'] = True
+
+    state['utterance_encoder_gating'] = 'GRU'
+    state['dialogue_encoder_gating'] = 'GRU'
+    state['utterance_decoder_gating'] = 'GRU'
+    state['bidirectional_utterance_encoder'] = True
+    state['direct_connection_between_encoders_and_decoder'] = True
+
+    state['bs'] = 5
+    state['sort_k_batches'] = 1
+    state['use_nce'] = False
+    state['decoder_bias_type'] = 'all'
+
+    state['qdim_encoder'] = 15
+    state['qdim_decoder'] = 5
+    state['sdim'] = 10
+    state['rankdim'] = 10
+
+    return state
+
 
 def prototype_test_variational():
     state = prototype_state()
