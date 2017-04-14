@@ -30,7 +30,7 @@ class ConvertCnText2Dict(object):
         self.end_of_utterance = "<sss>"
         self.end_of_dialog = "<ddd>"
         self.txt_max_length = 800
-        self.to_word_api = 'http://218.244.132.122:8080/api/HanLpAPI/toWord'
+        self.to_word_api = 'http://218.244.132.122:8080/api/openAPI/toWord'
         self.args = args
 
 
