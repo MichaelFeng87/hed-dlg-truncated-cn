@@ -15,9 +15,18 @@ Iulian V. Serban*, Alessandro Sordoni*, Yoshua Bengio1*, Aaron Courville* and Jo
      (c)  python create-text-file-for-tests.py ./tests/models/1491890939.58_testmodel ./tests/data/ttest.dialogues.pkl --utterances_to_predict 2
      ps. 对于Ubuntu和Twitter的示例由于数据较大，本部分暂不做介绍。  
     
-第二部分：兼容python3      
+第二部分：兼容python3 - 更新了部分代码兼容python3
 
-第三部分：中文智能应答对话  
+第三部分：中文智能应答对话
+
+    （1）cd Prepare_Data_CN
+       python3 convert-cn-text2dict.py raw_data/train_demo.txt ./pkl_data/train_demo
+       python3 convert-cn-text2dict.py raw_data/test_demo.txt pkl_data/test_demo
+       python3 convert-cn-text2dict.py raw_data/valid_demo.txt pkl_data/valid_demo
+    (2) cd hed-dlg-truncated-cn 训练模型
+       THEANO_FLAGS=mode=FAST_RUN,floatX=float32 python3 train.py --prototype prototype_test_cn > Model_Output_Cn.txt
+    (3) 应答对话测试
+       python3 create-text-file-for-tests.py Prepare_Data_CN/models/1492077976.51_model ./Prepare_Data_CN/pkl_data/test_demo.dialogues.pkl --utterances_to_predict 3
       
 
 
