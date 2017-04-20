@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 """
 Takes as input a dictionary file and python pickle file containing a 
 dictionary with pretrained word embeddings, and computes an initial encoding 
@@ -24,7 +25,8 @@ import operator
 import os
 import sys
 import logging
-import cPickle
+import pickle as cPickle
+#import cPickle
 import itertools
 from collections import Counter
 from utils import *
@@ -67,7 +69,7 @@ logger = logging.getLogger('covert-wordemb-dict2emb-matrix')
 # These are the words, which won't be looked upn in the pretrained word embedding dictionary
 non_word_tokens = ['<s>', '</s>', '<t>', '</t>', '<unk>', '.', ',', '``', '\'\'', '[', ']', '`', '-', '--', '\'', '<pause>', '<first_speaker>', '<second_speaker>', '<third_speaker>', '<minor_speaker>', '<voice_over>', '<off_screen>', '</d>']
 
-print 'The following non-word tokens will not be extracted from the pretrained embeddings: ', non_word_tokens
+print('The following non-word tokens will not be extracted from the pretrained embeddings: ', non_word_tokens)
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -122,12 +124,14 @@ word_freq = dict([(tok_id, freq) for _, tok_id, freq, _ in model_dict])
 # Load pretrained word embeddings
 if uses_word2vec:
     import gensim, logging
-    embedding_dict = gensim.models.Word2Vec.load_word2vec_format(args.embedding_dictionary, binary=True)
+    #embedding_dict = gensim.models.Word2Vec.load_word2vec_format(args.embedding_dictionary, binary=True)
+    embedding_dict = gensim.models.KeyedVectors.load_word2vec_format(args.embedding_dictionary, binary=True)
 else:
     embedding_dict = cPickle.load(open(args.embedding_dictionary, "rb" ) )
 
 if uses_word2vec:
-    raw_emb_dim = embedding_dict['hello'].shape[0]
+    #raw_emb_dim = embedding_dict['hello'].shape[0]
+    raw_emb_dim = 100
 else:
     raw_emb_dim = embedding_dict[embedding_dict.keys()[0]].shape[0]
 
@@ -162,7 +166,7 @@ for key in str_to_idx.iterkeys():
         unique_word_indices_found.append(index)
         words_found = words_found + 1
     elif len(key) > 3 and (key[-1] == '.' and key[0:len(key)-1] in embedding_dict): # Remove punctuation mark
-        print 'Assuming ' + str(key) + ' -> ' + str(key[0:len(key)-1])
+        print('Assuming ' + str(key) + ' -> ' + str(key[0:len(key)-1]))
         W_emb_raw[index, :] = embedding_dict[key[0:len(key)-1]]
         unique_word_indices_found.append(index)
         words_found = words_found + 1
@@ -202,7 +206,7 @@ for key in str_to_idx.iterkeys():
                         W_emb_raw[index, :] = embedding_dict[suggestion]
                         words_found = words_found + 1
                         word_was_found = True
-                        print 'Correcting ' + str(key) + ' -> ' + str(suggestion)
+                       # print('Correcting ' + str(key) + ' -> ' + str(suggestion))
                         break
 
         if word_was_found == True:
@@ -226,8 +230,8 @@ logger.info("non-word terms in corpus: %d" % total_freq_non_word)
 logger.info("Percentage non-word terms in corpus: %f" % (float(total_freq_non_word)/float(total_freq)))
 
 
-print 'unique_words_left_out', unique_words_left_out
-
+print('unique_words_left_out', unique_words_left_out)
+logger.info("++++: {0},{1}".format(raw_emb_dim, emb_dim))
 assert(raw_emb_dim >= emb_dim)
 
 # Use PCA to reduce dimensionality appropriately

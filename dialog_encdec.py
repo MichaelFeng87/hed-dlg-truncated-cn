@@ -1316,15 +1316,15 @@ class DialogEncoderDecoder(Model):
         if not hasattr(self, 'decoder_encoding_fn'):
             # Compile functions
             logger.debug("Building decoder encoding function")
-                
+            # self.x_cost_mask, self.x_reset_mask 
             self.decoder_encoding_fn = theano.function(inputs=[self.x_data, self.x_data_reversed, 
-                                                         self.x_max_length, self.x_cost_mask,
-                                                         self.x_reset_mask, 
+                                                         self.x_max_length, self.x_cost_mask[1:],
+                                                         self.x_reset_mask[1:], 
                                                          self.ran_cost_utterance, self.x_dropmask],
                                             outputs=[self.hd],
                                             on_unused_input='warn', 
                                             name="decoder_encoding_fn")
-
+            logger.debug("Building decoder encoding function2")
         return self.decoder_encoding_fn
 
     # Helper function used for the training with noise contrastive estimation (NCE).
@@ -1558,7 +1558,8 @@ class DialogEncoderDecoder(Model):
             state['deep_direct_connection'] = False
 
         if not state['direct_connection_between_encoders_and_decoder']:
-            assert(state['deep_direct_connection'] == False)
+            #assert(state['deep_direct_connection'] == False)
+            assert(state['deep_direct_connection'] == True)
 
         if not 'collaps_to_standard_rnn' in state:
             state['collaps_to_standard_rnn'] = False
@@ -1617,7 +1618,7 @@ class DialogEncoderDecoder(Model):
 
         # Load dictionary
         #raw_dict = cPickle.load(open(self.dictionary, 'r'))
-        raw_dict = cPickle.load(open(self.dictionary, 'r'))
+        raw_dict = cPickle.load(open(self.dictionary, 'rb'))
         
         # Probabilities for each term in the corpus used for noise contrastive estimation (NCE)
         self.noise_probs = [x[2] for x in sorted(raw_dict, key=operator.itemgetter(1))]

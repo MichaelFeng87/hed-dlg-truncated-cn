@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import argparse
-import cPickle
+#import cPickle
+import pickle as cPickle
 import traceback
 import logging
 import time
@@ -61,7 +62,7 @@ def sample_wrapper(sample_logic):
 
             if verbose:
                 for i in range(len(converted_samples)):
-                    print "{}: {}".format(costs[i], converted_samples[i].encode('utf-8'))
+                    print("{}: {}".format(costs[i], converted_samples[i].encode('utf-8')))
 
             context_samples.append(converted_samples)
             context_costs.append(costs)
@@ -148,7 +149,16 @@ class Sampler(object):
             ones_mask = numpy.zeros((context.shape[0], self.model.bs), dtype='float32')
 
             # Computes new utterance decoder hidden states (including intermediate utterance encoder and dialogue encoder hidden states)
+            logger.info("++++++++++++++++++++++++")
+            logger.info("enlarged_context: {0}".format(enlarged_context))
+            logger.info("enlarged_reversed_context: {0}".format(enlarged_reversed_context))
+            logger.info("self.max_len :{0}".format(self.max_len))
+            logger.info("zero_mask:{0}".format(zero_mask))
+            logger.info("self.model.bs:{0}".format(numpy.zeros((self.model.bs), dtype='float32')))
+            logger.info("ran_vector:{0}".format(ran_vector))
+            logger.info("ones_mask:{0}".format(ones_mask))
             new_hd = self.compute_decoder_encoding(enlarged_context, enlarged_reversed_context, self.max_len, zero_mask, zero_mask, numpy.zeros((self.model.bs), dtype='float32'), ran_vector, ones_mask)
+            logger.info("++++++++++++++++++++++++")
             prev_hd[:] = new_hd[0][-1][0:context.shape[1], :]
 
 
@@ -174,7 +184,8 @@ class Sampler(object):
             # Stack only when we sampled something
             if k > 0:
                 context = numpy.vstack([context, \
-                                        numpy.array(map(lambda g: g[-1], gen))]).astype('int32')
+                                        numpy.array([g[-1] for g in gen])]).astype('int32')
+                # fix --                        numpy.array(map(lambda g: g[-1], gen))]).astype('int32')
                 reversed_context = numpy.copy(context)
                 for idx in range(context.shape[1]):
                     eos_indices = numpy.where(context[:, idx] == self.model.eos_sym)[0]

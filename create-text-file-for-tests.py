@@ -32,8 +32,8 @@ import collections
 import string
 import os
 
-from state import prototype_state
-
+#from state import prototype_state
+from state import prototype_buy_cn
 def indices_to_words(idx_to_str, seq):
     """
     Converts a list of words to a list
@@ -75,7 +75,8 @@ def main():
     args = parse_args()
 
     # Load state file
-    state = prototype_state()
+#    state = prototype_state()
+    state = prototype_buy_cn()
     state_path = args.model_prefix + "_state.pkl"
     # fix -- with open(state_path) as src:
     with open(state_path,'rb') as src:
@@ -112,7 +113,6 @@ def main():
                 if word == state['eos_sym']:
                     utterances += [current_utterance]
                     current_utterance = []
-
             if args.leave_out_short_dialogues:
                 if len(utterances) <= utterances_to_predict+1:
                     continue
@@ -182,7 +182,7 @@ def main():
 
     f = open('test_responses.txt','w')
     # fix -- f.write(test_responses.encode("utf-8"))
-    f.write(test_responses.replace(" ",""))
+    f.write(test_responses)
     f.close()
 
     print('All done!')

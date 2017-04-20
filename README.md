@@ -1,34 +1,106 @@
 ### Description
-Iulian V. Serban*, Alessandro Sordoni*, Yoshua Bengio1*, Aaron Courville* and Joelle Pineau 作为智能应答方面的代表，为该领域的研究做出了很大贡献，基于Ubuntu／Twitter／Movie对白等对话语料库，以及利用VHRED／HRED／Truncated BPTT等各种深度学习模型的工程化项目hed-dlg-truncated，取得了较好的应答对话效果。本项目hed-dlg-truncated-cn通过前期摸索，总结能快速运行demo的步骤，帮助有兴趣的同行方便上手和使用。更重要的是利用已有成果，构建面向中文的智能对话应用。
-本项目计划主要分三个部分／阶段，而hed-dlg-truncated中所描述的具体细节本项目不再赘述。第一部分描述如何快速运行demo的步骤；原项目基于python2，因此第二部分拟进行python3改造；第三部分为进行中文智能应答对话。
-
-第一部分：快速运行demo的步骤	
-
-（1）安装theano，准备hed-dlg-truncated工程；
-
-（2）demo步骤：
-
-  	 (a)  cd hed-dlg-truncated-master
-     #### 训练模型
-     (b)  THEANO_FLAGS=mode=FAST_RUN,floatX=float32 python train.py --prototype prototype_test > Model_Output.txt
-     ###  对测试问题进行应答对话 －－文件名 1491890939.58_testmodel 根据实际情况调整，在tests/models里面
-     (c)  python create-text-file-for-tests.py ./tests/models/1491890939.58_testmodel ./tests/data/ttest.dialogues.pkl --utterances_to_predict 2
-     ps. 对于Ubuntu和Twitter的示例由于数据较大，本部分暂不做介绍。  
-    
-第二部分：兼容python3 - 更新了部分代码兼容python3
-
-第三部分：中文智能应答对话
-
-    （1）cd Prepare_Data_CN
-       python3 convert-cn-text2dict.py raw_data/train_demo.txt ./pkl_data/train_demo
-       python3 convert-cn-text2dict.py raw_data/test_demo.txt pkl_data/test_demo
-       python3 convert-cn-text2dict.py raw_data/valid_demo.txt pkl_data/valid_demo
-    (2) cd hed-dlg-truncated-cn 训练模型
-       THEANO_FLAGS=mode=FAST_RUN,floatX=float32 python train.py --prototype prototype_test_cn > Model_Output_Cn.txt
-    (3) 应答对话测试
-       python3 create-text-file-for-tests.py Prepare_Data_CN/models/1492077976.51_model ./Prepare_Data_CN/pkl_data/test_demo.dialogues.pkl --utterances_to_predict 3
-      
+This repository hosts the Hierarchical Encoder Decoder RNN model (HRED) and 
+the Latent Variable Hierarchical Recurrent Encoder-Decoder RNN model (VHRED) for generative dialog modeling as described by Serban et al. (2016a) and Serban et al. (2016c).
 
 
 
+### Truncated BPTT
+Both models are implemented using Truncated Backpropagation Through Time (Truncated BPTT).
+The truncated computation is carried out by splitting each document (dialogue) into shorter sequences (e.g. 80 tokens) and computing gradients for each sequence separately, such that the hidden state of the RNNs on each subsequence are initialized from the preceding sequences (i.e. the hidden states have been forward propagated through the previous states).
 
+
+
+### Creating Datasets
+The script convert-text2dict.py can be used to generate model datasets based on text files with dialogues.
+It only requires that the document contains end-of-utterance tokens &lt;/s&gt; which are used to construct the model graph, since the utterance encoder is only connected to the dialogue encoder at the end of each utterance.
+
+Prepare your dataset as a text file for with one document per line (e.g. one dialogue per line). The documents are assumed to be tokenized. If you have validation and test sets, they must satisfy the same requirements.
+
+Once you're ready, you can create the model dataset files by running:
+
+python convert-text2dict.py &lt;training_file&gt; --cutoff &lt;vocabulary_size&gt; Training
+python convert-text2dict.py &lt;validation_file&gt; --dict=Training.dict.pkl Validation
+python convert-text2dict.py &lt;test_file&gt; --dict=Training.dict.pkl &lt;vocabulary_size&gt; Test
+
+where &lt;training_file&gt;, &lt;validation_file&gt; and &lt;test_file&gt; are the training, validation and test files, and &lt;vocabulary_size&gt; is the number of tokens that you want to train on (all other tokens, but the most frequent &lt;vocabulary_size&gt; tokens, will be converted to &lt;unk&gt; symbols).
+
+NOTE: The script automatically adds the following special tokens specific to movie scripts:
+- end-of-utterance: &lt;/s&gt;
+- end-of-dialogue: &lt;/d&gt;
+- first speaker: &lt;first_speaker&gt;
+- second speaker: &lt;second_speaker&gt;
+- third speaker: &lt;third_speaker&gt;
+- minor speaker: &lt;minor_speaker&gt;
+- voice over: &lt;voice_over&gt;
+- off screen: &lt;off_screen&gt;
+- pause: &lt;pause&gt;
+
+If these do not exist in your dataset, you can safely ignore these. The model will learn to assign approximately zero probability mass to them.
+
+
+
+### Model Training
+If you have Theano with GPU installed (bleeding edge version), you can train the model as follows:
+1) Clone the Github repository
+2) Create a new "Output" and "Data" directories inside it.
+3) Unpack your dataset files into "Data" directory.
+4) Create a new prototype inside state.py (look at prototype_ubuntu_HRED for an example)
+5) From the terminal, cd into the code directory and run:
+
+    THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python train.py --prototype <prototype_name> > Model_Output.txt
+
+where &lt;prototype_name&gt; is a state (model architecture) defined inside state.py.
+Training a model to convergence on a modern GPU on the Ubuntu Dialogue Corpus with 46 million tokens takes about 1-2 weeks. If your GPU runs out of memory, you can adjust the bs (batch size) parameter in the model state, but training will be slower. You can also play around with the other parameters inside state.py.
+
+(CURRENTLY NOT SUPPORTED) To test a model w.r.t. word perplexity run:
+
+    THEANO_FLAGS=mode=FAST_RUN,device=gpu,floatX=float32 python evaluate.py <model_name> Model_Evaluation.txt
+
+where &lt;model_name&gt; is the model name automatically generated during training.
+
+
+
+### Model Sampling & Testing
+
+To generate model responses using beam search run:
+
+    THEANO_FLAGS=mode=FAST_RUN,floatX=float32,device=gpu python sample.py <model_name> <contexts> <model_outputs> --beam_search --n-samples=<beams> --ignore-unk --verbose
+
+where &lt;model_name&gt; is the name automatically generated during training, &lt;contexts&gt; is a file containing the dialogue contexts with one dialogue per line, and &lt;beams&gt; is the size of the beam search. The results are saved in the file &lt;model_outputs&gt;.
+
+To compute the embedding-based metrics on the generated responses run:
+
+    python Evaluation/embedding_metrics.py <ground_truth_responses> <model_outputs> <word_emb> 
+
+where &lt;ground_truth_responses&gt; is a file containing the ground truth responses, &lt;model_outputs&gt; is the file generated above and &lt;word_emb&gt; is the path to the binarized word embeddings. For the word embeddings, we recommend to use Word2Vec trained on the GoogleNews Corpus: https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM.
+
+
+
+### Citation
+
+If you build on this work, we'd really appreciate it if you could cite our papers:
+
+    A Hierarchical Latent Variable Encoder-Decoder Model for Generating Dialogues. Iulian Vlad Serban, Alessandro Sordoni, Ryan Lowe, Laurent Charlin, Joelle Pineau, Aaron Courville, Yoshua Bengio. 2016. http://arxiv.org/abs/1605.06069
+
+    Building End-To-End Dialogue Systems Using Generative Hierarchical Neural Network Models. Iulian V. Serban, Alessandro Sordoni, Yoshua Bengio, Aaron Courville, Joelle Pineau. 2016. AAAI. http://arxiv.org/abs/1507.04808.
+
+
+### Datasets
+
+The pre-processed Ubuntu Dialogue Corpus and model responses used by Serban et al. (2016a) are available at: http://www.iulianserban.com/Files/UbuntuDialogueCorpus.zip. These can be used with the model states "prototype_ubuntu_LSTM", "prototype_ubuntu_HRED", and "prototype_ubuntu_VHRED" (see state.py) to reproduce the results of Serban et al. (2016a) on the Ubuntu Dialogue Corpus.
+
+The original Ubuntu Dialogue Corpus as released by Lowe et al. (2015) can be found here: http://cs.mcgill.ca/~jpineau/datasets/ubuntu-corpus-1.0/
+
+Unfortunately due to Twitter's terms of service we are not allowed to distribute Twitter content. Therefore we can only make available the tweet IDs, which can then be used with the Twitter API to build a similar dataset. The tweet IDs and model test responses can be found here: http://www.iulianserban.com/Files/TwitterDialogueCorpus.zip.
+
+The MovieTriples script is also available for research purposes only by contacting Iulian Vlad Serban by email, although we strongly recommend researchers to benchmark their models on Ubuntu and Twitter, since these datasets are substantially larger and represent more well-defined tasks.
+
+### References
+
+    A Hierarchical Latent Variable Encoder-Decoder Model for Generating Dialogues. Iulian Vlad Serban, Alessandro Sordoni, Ryan Lowe, Laurent Charlin, Joelle Pineau, Aaron Courville, Yoshua Bengio. 2016a. http://arxiv.org/abs/1605.06069
+
+    Multiresolution Recurrent Neural Networks: An Application to Dialogue Response Generation. Iulian Vlad Serban, Tim Klinger, Gerald Tesauro, Kartik Talamadupula, Bowen Zhou, Yoshua Bengio, Aaron Courville. 2016b. http://arxiv.org/abs/1606.00776.
+
+    Building End-To-End Dialogue Systems Using Generative Hierarchical Neural Network Models. Iulian V. Serban, Alessandro Sordoni, Yoshua Bengio, Aaron Courville, Joelle Pineau. 2016c. AAAI. http://arxiv.org/abs/1507.04808.
+
+    The Ubuntu Dialogue Corpus: A Large Dataset for Research in Unstructured Multi-Turn Dialogue Systems. Ryan Lowe, Nissan Pow, Iulian Serban, Joelle Pineau. 2015. SIGDIAL. http://arxiv.org/abs/1506.08909.

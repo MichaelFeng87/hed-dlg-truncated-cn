@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+# python3
 """
 字典结构
 第一个元素是词;
@@ -20,7 +21,9 @@ from collections import Counter
 import argparse
 import requests
 import json
-
+import traceback
+import re
+import time
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('cn-text2dict')
 
@@ -29,11 +32,9 @@ class ConvertCnText2Dict(object):
         self.unk = "<unk>"
         self.end_of_utterance = "<sss>"
         self.end_of_dialog = "<ddd>"
-        self.txt_max_length = 800
-        self.to_word_api = 'http://218.244.132.122:8080/api/openAPI/toWord'
+        self.txt_max_length = 600
+        self.to_word_api = 'http://218.244.132.122:8080/api/HanLpAPI/toWord'
         self.args = args
-
-
 
     def safe_pickle(self, obj, filename):
         if os.path.isfile(filename):
@@ -57,13 +58,16 @@ class ConvertCnText2Dict(object):
         for line in open(self.args.input, 'r'):
             per_dialog = line.strip()
             if len(per_dialog) <= self.txt_max_length:
-                line_words = self.segment_call_api(per_dialog)
-                print(type(line_words))
-                if line_words[len(line_words) - 1]["word"] != self.end_of_utterance:
-                    line_words.append({"word":self.end_of_utterance})
-                s = [x["word"] for x in line_words]
-                print(s)
-                word_counter.update(s)
+                try:
+                    line_words = self.segment_call_api(per_dialog)
+                    if len(line_words) > 1 :
+                        if line_words[len(line_words) - 1]["word"] != self.end_of_utterance:
+                            line_words.append({"word":self.end_of_utterance})
+                        s = [x["word"] for x in line_words]
+                        word_counter.update(s)
+                except:
+                    traceback.print_exc()
+                    pass 
             else:
                 pass
         total_freq = sum(word_counter.values())
@@ -86,12 +90,17 @@ class ConvertCnText2Dict(object):
     # 调用分词接口
     def segment_call_api(self, per_dialog):
         dialog_line = {"text": per_dialog, "stop":"true"}
-        dialog_info = requests.post(self.to_word_api,params=dialog_line)
-        ### for python3
-        dialog_words = json.loads(dialog_info.content.decode("utf-8"))
-        ### for python2.7
-        # dialog_words = json.loads(dialog_info.content.decode("utf-8").encode("utf-8"))
-        print(dialog_words)
+        try:
+            dialog_info = requests.post(self.to_word_api,params=dialog_line)
+            ### for python3
+            regex = re.compile(r'\\(?![/u"])')
+            dialog_words = json.loads(regex.sub(r"\\\\", dialog_info.content.decode("utf-8")))
+            ### for python2.7
+            # dialog_words = json.loads(dialog_info.content.decode("utf-8").encode("utf-8"))
+        except:
+            traceback.print_exc()
+            dialog_words = []
+            pass
         return dialog_words
 
     #################################
@@ -110,8 +119,9 @@ class ConvertCnText2Dict(object):
             per_dialog = dialogue.strip()
             if len(per_dialog) <= self.txt_max_length:
                 dialogue_words = self.segment_call_api(per_dialog)
-                if dialogue_words[len(dialogue_words) - 1]["word"] != self.end_of_utterance:
-                    dialogue_words.append({"word":self.end_of_utterance})
+                if len(dialogue_words) > 1:
+                    if dialogue_words[len(dialogue_words) - 1]["word"] != self.end_of_utterance:
+                        dialogue_words.append({"word":self.end_of_utterance})
             else:
                 pass
 
@@ -131,7 +141,8 @@ class ConvertCnText2Dict(object):
                 df[word_id] += 1
 
             # Add dialogue to corpus
-            binarized_corpus.append(dialogue_word_ids)
+            if len(dialogue_word_ids)>0:
+                binarized_corpus.append(dialogue_word_ids)
 
         self.safe_pickle(binarized_corpus, self.args.output + ".dialogues.pkl")
         self.safe_pickle([(word, word_id, freqs[word_id], df[word_id]) for word, word_id in vocab.items()],
@@ -151,4 +162,5 @@ if __name__ == "__main__":
         raise Exception("Input file not found!")
     convert = ConvertCnText2Dict(args)
     vocab = convert.gen_dialog_txt2words()
+    time.sleep(5)
     convert.binarize_dialog(vocab)
