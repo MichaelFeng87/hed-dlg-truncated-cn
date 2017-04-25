@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
 import argparse
@@ -11,6 +12,10 @@ import sys
 import os
 import numpy
 import codecs
+
+import re
+import requests
+import json
 
 from dialog_encdec import DialogEncoderDecoder
 from numpy_compat import argpartition
@@ -40,7 +45,11 @@ def sample_wrapper(sample_logic):
             if len(context_utterances) == 0:
                 joined_context = [sampler.model.eos_sym]
             else:
-                utterance_ids = sampler.model.words_to_indices(context_utterances.split())
+                logger.info("context_utterances :{0}".format(context_utterances))
+                
+                #utterance_ids = sampler.model.words_to_indices(segment_call_api(" ".join(context_utterances)))
+                utterance_ids = sampler.model.words_to_indices(context_utterances)
+
                 # Add eos tokens
                 if len(utterance_ids) > 0:
                     if not utterance_ids[0] == sampler.model.eos_sym:
@@ -53,22 +62,49 @@ def sample_wrapper(sample_logic):
 
                 joined_context += utterance_ids
 
+            logger.info("joined_context :{0}".format(joined_context))
             samples, costs = sample_logic(sampler, joined_context, **kwargs) 
-             
+            
+            logger.info("samples:{0}, costs:{0} ".format(samples, costs)) 
             # Convert back indices to list of words
             converted_samples = map(lambda sample : sampler.model.indices_to_words(sample, exclude_end_sym=kwargs.get('n_turns', 1) == 1), samples)
+
             # Join the list of words
-            converted_samples = map(' '.join, converted_samples)
+            #fix -- converted_samples = map(' '.join, converted_samples)
+            converted_samples = list(map(' '.join, converted_samples))
 
             if verbose:
                 for i in range(len(converted_samples)):
-                    print("{}: {}".format(costs[i], converted_samples[i].encode('utf-8')))
+                    #fix --print("{}: {}".format(costs[i], converted_samples[i].encode('utf-8')))
+                    print("{}: {}".format(costs[i], converted_samples[i]))
 
             context_samples.append(converted_samples)
             context_costs.append(costs)
-
+        
+        #logger.info("context_samples ::::::::::::{0}".format(context_samples))
         return context_samples, context_costs
     return sample_apply
+
+def segment_call_api(per_dialog):
+    to_word_api = 'http://218.244.132.122:8080/api/HanLpAPI/toWord'
+    dialog_line = {"text": per_dialog, "stop":"true"}
+    try:
+        dialog_info = requests.post(to_word_api,params=dialog_line)
+        ### for python3
+        regex = re.compile(r'\\(?![/u"])')
+        dialog = json.loads(regex.sub(r"\\\\", dialog_info.content.decode("utf-8")))
+        dialog_words = []
+        for item in dialog:
+            # 分词后去空格
+            if len(item["word"].replace(" ","")) > 0:
+                dialog_words.append(item["word"])
+        ### for python2.7
+        # dialog_words = json.loads(dialog_info.content.decode("utf-8").encode("utf-8"))
+    except:
+        traceback.print_exc()
+        dialog_words = []
+        pass
+    return dialog_words
 
 class Sampler(object):
     """
@@ -100,7 +136,7 @@ class Sampler(object):
     @sample_wrapper
     def sample(self, *args, **kwargs):
         context = args[0]
-
+        
         n_samples = kwargs.get('n_samples', 1)
         ignore_unk = kwargs.get('ignore_unk', True)
         min_length = kwargs.get('min_length', 1)
@@ -136,7 +172,7 @@ class Sampler(object):
         prev_hs = numpy.zeros((n_samples, dialog_enc_size), dtype='float32')
 
         prev_hd = numpy.zeros((n_samples, self.model.utterance_decoder.complete_hidden_state_size), dtype='float32')
-
+        #self.model.reset_utterance_decoder_at_end_of_utterance = False
         if not self.model.reset_utterance_decoder_at_end_of_utterance:
             assert self.model.bs >= context.shape[1]
             enlarged_context = numpy.zeros((context.shape[0], self.model.bs), dtype='int32')
@@ -274,6 +310,7 @@ class Sampler(object):
             if verbose:
                 for gen in new_gen:
                     logger.debug("partial -> {}".format(' '.join(self.model.indices_to_words(gen))))
+                    #logger.debug("partial -> {}".format((' '.join(self.model.indices_to_words(gen))).encode("utf-8")))
 
             prev_hd = new_hd[new_sources]
             prev_hs = prev_hs[new_sources]

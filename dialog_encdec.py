@@ -1318,8 +1318,8 @@ class DialogEncoderDecoder(Model):
             logger.debug("Building decoder encoding function")
             # self.x_cost_mask, self.x_reset_mask 
             self.decoder_encoding_fn = theano.function(inputs=[self.x_data, self.x_data_reversed, 
-                                                         self.x_max_length, self.x_cost_mask[1:],
-                                                         self.x_reset_mask[1:], 
+                                                         self.x_max_length, self.x_cost_mask,
+                                                         self.x_reset_mask, 
                                                          self.ran_cost_utterance, self.x_dropmask],
                                             outputs=[self.hd],
                                             on_unused_input='warn', 
@@ -1558,8 +1558,8 @@ class DialogEncoderDecoder(Model):
             state['deep_direct_connection'] = False
 
         if not state['direct_connection_between_encoders_and_decoder']:
-            #assert(state['deep_direct_connection'] == False)
-            assert(state['deep_direct_connection'] == True)
+            assert(state['deep_direct_connection'] == False)
+            #assert(state['deep_direct_connection'] == True)
 
         if not 'collaps_to_standard_rnn' in state:
             state['collaps_to_standard_rnn'] = False
@@ -1651,6 +1651,7 @@ class DialogEncoderDecoder(Model):
         self.x_data_reversed = T.imatrix('x_data_reversed')
         self.x_cost_mask = T.matrix('cost_mask')
         self.x_reset_mask = T.vector('reset_mask')
+        #self.x_reset_mask = T.matrix('reset_mask')
         self.x_max_length = T.iscalar('x_max_length')
         self.ran_cost_utterance = T.tensor3('ran_cost_utterance')
         self.x_dropmask = T.matrix('x_dropmask')
@@ -1678,9 +1679,11 @@ class DialogEncoderDecoder(Model):
         if self.initialize_from_pretrained_word_embeddings == True:
             # Load pretrained word embeddings from pickled file
             logger.debug("Loading pretrained word embeddings")
-            pretrained_embeddings = cPickle.load(open(self.pretrained_word_embeddings_file, 'r'))
+            pretrained_embeddings = cPickle.load(open(self.pretrained_word_embeddings_file,'rb'))
 
             # Check all dimensions match from the pretrained embeddings
+            logger.debug("test: {0}".format(pretrained_embeddings[0].shape[0]))
+            logger.debug("test: {0}".format(self.idim))
             assert(self.idim == pretrained_embeddings[0].shape[0])
             assert(self.rankdim == pretrained_embeddings[0].shape[1])
             assert(self.idim == pretrained_embeddings[1].shape[0])

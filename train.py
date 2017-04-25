@@ -136,8 +136,8 @@ def main(args):
         if os.path.isfile(state_file) and os.path.isfile(timings_file):
             logger.debug("Loading previous state")
             
-            state = cPickle.load(open(state_file, 'r'))
-            timings = dict(numpy.load(open(timings_file, 'r')))
+            state = cPickle.load(open(state_file, 'rb'))
+            timings = dict(numpy.load(open(timings_file, 'rb')))
             for x, y in timings.items():
                 timings[x] = list(y)
 

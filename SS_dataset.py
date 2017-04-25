@@ -7,8 +7,8 @@ import copy
 import logging
 
 import threading
-import Queue
-#import queue as Queue
+#import Queue
+import queue as Queue
 
 import collections
 

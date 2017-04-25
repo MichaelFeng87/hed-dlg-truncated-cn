@@ -1,0 +1,2 @@
+</s> <first_speaker> 你 好 吗 </s> <second_speaker> 我 很好 谢谢  </s> <first_speaker> 你 怎么样 </s> </d> </s>
+</s> <first_speaker> 你 在 干嘛 呢  </s> <second_speaker> 没 什么 . </s> <first_speaker> 你 说 真的 吗  </s> </d> </s>

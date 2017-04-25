@@ -208,20 +208,20 @@ def prototype_test():
     state = prototype_state()
     
     # Fill paths here! 
-    state['train_dialogues'] = "./tests/data/ttrain.dialogues.pkl"
-    state['test_dialogues'] = "./tests/data/ttest.dialogues.pkl"
-    state['valid_dialogues'] = "./tests/data/tvalid.dialogues.pkl"
-    state['dictionary'] = "./tests/data/ttrain.dict.pkl"
+    state['train_dialogues'] = "./tests/data/ttrain_cn.dialogues.pkl"
+    state['test_dialogues'] = "./tests/data/ttest_cn.dialogues.pkl"
+    state['valid_dialogues'] = "./tests/data/tvalid_cn.dialogues.pkl"
+    state['dictionary'] = "./tests/data/ttrain_cn.dict.pkl"
     state['save_dir'] = "./tests/models/"
 
-    state['max_grad_steps'] = 20
+    state['max_grad_steps'] = 10
     
     # Handle pretrained word embeddings. Using this requires rankdim=10
     state['initialize_from_pretrained_word_embeddings'] = False
-    state['pretrained_word_embeddings_file'] = './tests/data/MT_WordEmb.pkl' 
+    state['pretrained_word_embeddings_file'] = './tests/data/Word2Vec_WordEmb.pkl' 
     state['fix_pretrained_word_embeddings'] = False
     
-    state['valid_freq'] = 50
+    state['valid_freq'] = 10
 
     state['collaps_to_standard_rnn'] = False
     
@@ -243,10 +243,10 @@ def prototype_test():
     state['use_nce'] = False
     state['decoder_bias_type'] = 'all'
     
-    state['qdim_encoder'] = 15
+    state['qdim_encoder'] = 25
     state['qdim_decoder'] = 5
-    state['sdim'] = 10
-    state['rankdim'] = 10
+    state['sdim'] = 20
+    state['rankdim'] = 300
 
     return state
 
@@ -254,20 +254,20 @@ def prototype_test_cn():
     state = prototype_state()
     # state['end_sym_utterance'] = '<sss>'
     # Fill paths here!
-    state['train_dialogues'] = "./Prepare_Data_CN/pkl_data/ajmd_demo_train.dialogues.pkl"
-    state['test_dialogues'] = "./Prepare_Data_CN/pkl_data/ajmd_demo_test.dialogues.pkl"
-    state['valid_dialogues'] = "./Prepare_Data_CN/pkl_data/ajmd_demo_valid.dialogues.pkl"
-    state['dictionary'] = "./Prepare_Data_CN/pkl_data/ajmd_demo_all.dict.pkl"
-    state['save_dir'] = "./Prepare_Data_CN/models/"
+    state['train_dialogues'] = "./tests/data/ttrain_cn.dialogues.pkl"
+    state['test_dialogues'] = "./tests/data/ttest_cn.dialogues.pkl"
+    state['valid_dialogues'] = "./tests/data/tvalid_cn.dialogues.pkl"
+    state['dictionary'] = "./tests/data/ttrain_cn.dict.pkl"
+    state['save_dir'] = "./tests/models/"
 
-    state['max_grad_steps'] = 20
-
+    state['max_grad_steps'] = 10
+    
     # Handle pretrained word embeddings. Using this requires rankdim=10
-    state['initialize_from_pretrained_word_embeddings'] = True
-    state['pretrained_word_embeddings_file'] = './Prepare_Data_CN/corpus_words_embedding/Word2Vec_WordEmb.pkl'
-    state['fix_pretrained_word_embeddings'] = True
+    state['initialize_from_pretrained_word_embeddings'] = False
+    state['pretrained_word_embeddings_file'] = './tests/data/Word2Vec_WordEmb.pkl' 
+    state['fix_pretrained_word_embeddings'] = False
 
-    state['valid_freq'] = 50
+    state['valid_freq'] = 5
 
     state['collaps_to_standard_rnn'] = False
 
@@ -281,24 +281,36 @@ def prototype_test_cn():
     state['utterance_encoder_gating'] = 'GRU'
     state['dialogue_encoder_gating'] = 'GRU'
     state['utterance_decoder_gating'] = 'GRU'
+    state['direct_connection_between_encoders_and_decoder'] = False
+    state['deep_direct_connection'] = False
+
     state['bidirectional_utterance_encoder'] = True
-    state['direct_connection_between_encoders_and_decoder'] = True
+    state['add_latent_gaussian_per_utterance'] = True
+    state['latent_gaussian_per_utterance_dim'] = 5
+    state['condition_latent_variable_on_dialogue_encoder'] = True
+    state['condition_latent_variable_on_dcgm_encoder'] = False
+    state['train_latent_gaussians_with_kl_divergence_annealing'] = True
+    state['kl_divergence_annealing_rate'] = 1.0/60000.0
+    state['latent_gaussian_linear_dynamics'] = True
+
+    state['decoder_drop_previous_input_tokens'] = True
+    state['decoder_drop_previous_input_tokens_rate'] = 0.75
 
     state['bs'] = 5
     state['sort_k_batches'] = 1
     state['use_nce'] = False
     state['decoder_bias_type'] = 'all'
 
-    state['qdim_encoder'] = 15
-    state['qdim_decoder'] = 5
-    state['sdim'] = 10
-    state['rankdim'] = 10
+    state['qdim_encoder'] = 30
+    state['qdim_decoder'] = 20
+    state['sdim'] = 30
+    state['rankdim'] = 300
 
     return state
 
 def prototype_demo_cn():
     state = prototype_state()
-    state['end_sym_utterance'] = '<sss>'
+    #state['end_sym_utterance'] = '<sss>'
     # Fill paths here!
     state['train_dialogues'] = "./Prepare_Data_CN/pkl_data/ajmd_demo_train.dialogues.pkl"
     state['test_dialogues'] = "./Prepare_Data_CN/pkl_data/ajmd_demo_test.dialogues.pkl"
@@ -359,21 +371,21 @@ def prototype_demo_cn():
 
 def prototype_buy_cn():
     state = prototype_state()
-    state['end_sym_utterance'] = '<sss>'
+    #state['end_sym_utterance'] = '<sss>'
     # Fill paths here!
-    state['train_dialogues'] = "./Prepare_Data_CN/pkl_data/buy_train.dialogues.pkl"
-    state['test_dialogues'] = "./Prepare_Data_CN/pkl_data/buy_test.dialogues.pkl"
-    state['valid_dialogues'] = "./Prepare_Data_CN/pkl_data/buy_valid.dialogues.pkl"
-    state['dictionary'] = "./Prepare_Data_CN/pkl_data/buy_train.dict.pkl"
+    state['train_dialogues'] = "./Prepare_Data_CN/pkl_data/buy_train_100.dialogues.pkl"
+    state['test_dialogues'] = "./Prepare_Data_CN/pkl_data/buy_test_100.dialogues.pkl"
+    state['valid_dialogues'] = "./Prepare_Data_CN/pkl_data/buy_valid_100.dialogues.pkl"
+    state['dictionary'] = "./Prepare_Data_CN/pkl_data/buy_train_100.dict.pkl"
     state['save_dir'] = "./Prepare_Data_CN/models/"
 
-    state['max_grad_steps'] = 80
+    state['max_grad_steps'] = 50
     # Handle pretrained word embeddings. Using this requires rankdim=10
-    state['initialize_from_pretrained_word_embeddings'] = True
-    state['pretrained_word_embeddings_file'] = './Prepare_Data_CN/corpus_words_embedding/Buy_Word2Vec_WordEmb.pkl'
-    state['fix_pretrained_word_embeddings'] = True
+    state['initialize_from_pretrained_word_embeddings'] = False
+    state['pretrained_word_embeddings_file'] = './Prepare_Data_CN/corpus_words_embedding/Buy_Word2Vec_WordEmb_100.pkl'
+    state['fix_pretrained_word_embeddings'] = False
 
-    state['valid_freq'] = 50
+    state['valid_freq'] = 5
     state['collaps_to_standard_rnn'] = False
 
     state['prefix'] = "model_"
@@ -382,7 +394,7 @@ def prototype_buy_cn():
     state['maxout_out'] = False
     state['deep_out'] = True
     state['deep_dialogue_input'] = True
-    state['direct_connection_between_encoders_and_decoder'] = True
+    state['direct_connection_between_encoders_and_decoder'] = False
     state['deep_direct_connection'] = False
 
     state['utterance_encoder_gating'] = 'GRU'
@@ -401,7 +413,7 @@ def prototype_buy_cn():
     state['decoder_drop_previous_input_tokens'] = True
     state['decoder_drop_previous_input_tokens_rate'] = 0.75
 
-    state['bs'] = 5
+    state['bs'] = 40
     state['sort_k_batches'] = 1 
     state['use_nce'] = False
     state['decoder_bias_type'] = 'all'
@@ -410,10 +422,10 @@ def prototype_buy_cn():
     #state['reset_utterance_encoder_at_end_of_utterance'] = False
     #state['lr'] = 0.0001
 
-    state['qdim_encoder'] = 60
-    state['qdim_decoder'] = 60
-    state['sdim'] = 60
-    state['rankdim'] = 100
+    state['qdim_encoder'] = 200
+    state['qdim_decoder'] = 20
+    state['sdim'] = 100
+    state['rankdim'] = 300
 
     return state
 
@@ -473,6 +485,10 @@ def prototype_test_variational():
     state['qdim_decoder'] = 5
     state['sdim'] = 10
     state['rankdim'] = 10
+
+    state['reset_utterance_decoder_at_end_of_utterance'] = False
+    state['reset_utterance_encoder_at_end_of_utterance'] = False
+    state['lr'] = 0.0001
 
     return state
 
